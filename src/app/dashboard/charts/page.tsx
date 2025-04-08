@@ -1,208 +1,221 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
-import { 
-  Chart as ChartJS, 
-  CategoryScale, 
-  LinearScale, 
-  PointElement, 
-  LineElement, 
-  BarElement,
-  ArcElement,
-  Title, 
-  Tooltip, 
-  Legend,
-  ChartData,
-  ChartOptions
-} from "chart.js"
-import { Line, Bar, Pie } from "react-chartjs-2"
-
-// Register ChartJS components
-ChartJS.register(
+import { useState } from "react"
+import {
+  Chart as ChartJS,
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
   BarElement,
-  ArcElement,
   Title,
   Tooltip,
-  Legend
-)
+  Legend,
+  ArcElement,
+} from "chart.js"
+import { Line, Bar, Pie } from "react-chartjs-2"
+import { useAppSelector } from "@/redux/hooks"
+
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend)
+
+
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+const lineData = {
+  labels: months,
+  datasets: [
+    {
+      label: "Sales 2023",
+      data: [65, 59, 80, 81, 56, 55, 40, 45, 60, 70, 75, 80],
+      borderColor: "rgb(59, 130, 246)",
+      backgroundColor: "rgba(59, 130, 246, 0.5)",
+      tension: 0.3,
+    },
+    {
+      label: "Sales 2022",
+      data: [45, 50, 60, 65, 45, 50, 35, 40, 50, 60, 65, 70],
+      borderColor: "rgb(107, 114, 128)",
+      backgroundColor: "rgba(107, 114, 128, 0.5)",
+      tension: 0.3,
+    },
+  ],
+}
+
+const barData = {
+  labels: ["Q1", "Q2", "Q3", "Q4"],
+  datasets: [
+    {
+      label: "Revenue",
+      data: [12000, 19000, 15000, 22000],
+      backgroundColor: "rgba(59, 130, 246, 0.5)",
+      borderColor: "rgb(59, 130, 246)",
+      borderWidth: 1,
+    },
+    {
+      label: "Expenses",
+      data: [8000, 12000, 10000, 14000],
+      backgroundColor: "rgba(239, 68, 68, 0.5)",
+      borderColor: "rgb(239, 68, 68)",
+      borderWidth: 1,
+    },
+  ],
+}
+
+const pieData = {
+  labels: ["Product A", "Product B", "Product C", "Product D"],
+  datasets: [
+    {
+      data: [35, 25, 20, 20],
+      backgroundColor: [
+        "rgba(59, 130, 246, 0.7)",
+        "rgba(16, 185, 129, 0.7)",
+        "rgba(239, 68, 68, 0.7)",
+        "rgba(245, 158, 11, 0.7)",
+      ],
+      borderColor: ["rgb(59, 130, 246)", "rgb(16, 185, 129)", "rgb(239, 68, 68)", "rgb(245, 158, 11)"],
+      borderWidth: 1,
+    },
+  ],
+}
+
+const getChartOptions = (isDarkMode: boolean) => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: "top" as const,
+      labels: {
+        color: isDarkMode ? "#e5e7eb" : "#374151",
+      },
+    },
+    tooltip: {
+      bodyColor: isDarkMode ? "#e5e7eb" : "#374151",
+      backgroundColor: isDarkMode ? "#1f2937" : "#ffffff",
+      borderColor: isDarkMode ? "#374151" : "#e5e7eb",
+    },
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      grid: {
+        color: isDarkMode ? "#374151" : "#e5e7eb",
+      },
+      ticks: {
+        color: isDarkMode ? "#e5e7eb" : "#374151",
+      },
+    },
+    x: {
+      grid: {
+        color: isDarkMode ? "#374151" : "#e5e7eb",
+      },
+      ticks: {
+        color: isDarkMode ? "#e5e7eb" : "#374151",
+      },
+    },
+  },
+})
 
 export default function ChartsPage(): JSX.Element {
-  const [windowWidth, setWindowWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  const [activeTab, setActiveTab] = useState("all")
+  
 
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth)
-    }
+  const darkMode = useAppSelector((state) => state.ui.darkMode)
 
-    window.addEventListener('resize', handleResize)
-    return () => {
-      window.removeEventListener('resize', handleResize)
-    }
-  }, [])
-
-  // Line chart data
-  const lineChartData: ChartData<'line'> = {
-    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-    datasets: [
-      {
-        label: 'Website Traffic',
-        data: [65, 59, 80, 81, 56, 55, 40],
-        fill: false,
-        borderColor: 'rgb(75, 192, 192)',
-        tension: 0.1
-      },
-      {
-        label: 'App Traffic',
-        data: [28, 48, 40, 19, 86, 27, 90],
-        fill: false,
-        borderColor: 'rgb(255, 99, 132)',
-        tension: 0.1
-      }
-    ]
-  }
-
-  // Bar chart data
-  const barChartData: ChartData<'bar'> = {
-    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-    datasets: [
-      {
-        label: 'Sales 2022',
-        data: [65, 59, 80, 81, 56, 55, 40],
-        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-      },
-      {
-        label: 'Sales 2023',
-        data: [28, 48, 40, 19, 86, 27, 90],
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
-      }
-    ]
-  }
-
-  // Pie chart data
-  const pieChartData: ChartData<'pie'> = {
-    labels: ['Desktop', 'Mobile', 'Tablet'],
-    datasets: [
-      {
-        data: [300, 500, 200],
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.5)',
-          'rgba(54, 162, 235, 0.5)',
-          'rgba(255, 206, 86, 0.5)',
-        ],
-        borderColor: [
-          'rgba(255, 99, 132, 1)',
-          'rgba(54, 162, 235, 1)',
-          'rgba(255, 206, 86, 1)',
-        ],
-        borderWidth: 1,
-      },
-    ],
-  }
-
-  // Chart options
-  const chartOptions: ChartOptions<'line'> = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-      title: {
-        display: true,
-        text: 'Traffic Data',
-      },
-    },
-  }
-
-  const barChartOptions: ChartOptions<'bar'> = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-      title: {
-        display: true,
-        text: 'Sales Comparison',
-      },
-    },
-  }
-
-  const pieChartOptions: ChartOptions<'pie'> = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-      title: {
-        display: true,
-        text: 'Device Distribution',
-      },
-    },
-  }
+  const cardBgClass = darkMode ? "bg-gray-800" : "bg-white"
+  const headingClass = darkMode ? "text-white" : "text-gray-900"
+  const textClass = darkMode ? "text-gray-300" : "text-gray-600"
+  
+  const chartOptions = getChartOptions(darkMode)
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-bold">Dashboard Charts</h1>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Line Chart */}
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <Line data={lineChartData} options={chartOptions} />
-        </div>
-        
-        {/* Bar Chart */}
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <Bar data={barChartData} options={barChartOptions} />
-        </div>
-        
-        {/* Pie Chart */}
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <div style={{ maxWidth: '400px', margin: '0 auto' }}>
-            <Pie data={pieChartData} options={pieChartOptions} />
+    <div>
+      <h1 className={`text-2xl font-bold mb-6 ${headingClass}`}>Charts</h1>
+
+      <div className="mb-6 border-b border-gray-200 dark:border-gray-700">
+        <ul className="flex flex-wrap -mb-px text-sm font-medium text-center">
+          <li className="mr-2">
+            <button
+              className={`inline-block p-4 rounded-t-lg ${
+                activeTab === "all"
+                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                  : `${textClass} hover:text-gray-600 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 border-b-2 border-transparent`
+              }`}
+              onClick={() => setActiveTab("all")}
+            >
+              All Charts
+            </button>
+          </li>
+          <li className="mr-2">
+            <button
+              className={`inline-block p-4 rounded-t-lg ${
+                activeTab === "line"
+                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                  : `${textClass} hover:text-gray-600 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 border-b-2 border-transparent`
+              }`}
+              onClick={() => setActiveTab("line")}
+            >
+              Line Chart
+            </button>
+          </li>
+          <li className="mr-2">
+            <button
+              className={`inline-block p-4 rounded-t-lg ${
+                activeTab === "bar"
+                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                  : `${textClass} hover:text-gray-600 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 border-b-2 border-transparent`
+              }`}
+              onClick={() => setActiveTab("bar")}
+            >
+              Bar Chart
+            </button>
+          </li>
+          <li>
+            <button
+              className={`inline-block p-4 rounded-t-lg ${
+                activeTab === "pie"
+                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                  : `${textClass} hover:text-gray-600 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 border-b-2 border-transparent`
+              }`}
+              onClick={() => setActiveTab("pie")}
+            >
+              Pie Chart
+            </button>
+          </li>
+        </ul>
+      </div>
+
+
+      <div className="grid grid-cols-1 gap-6">
+        {(activeTab === "all" || activeTab === "line") && (
+          <div className={`${cardBgClass} p-6 rounded-lg shadow`}>
+            <h2 className={`text-lg font-semibold mb-4 ${headingClass}`}>Monthly Sales Comparison</h2>
+            <div className="h-80">
+              <Line data={lineData} options={chartOptions} />
+            </div>
           </div>
-        </div>
-        
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-700">Total Users</h3>
-            <p className="text-3xl font-bold mt-2">1,234</p>
-            <p className="text-green-500 flex items-center mt-2">
-              <span>↑ 12%</span>
-              <span className="text-gray-500 text-sm ml-1">vs last month</span>
-            </p>
+        )}
+
+  
+        {(activeTab === "all" || activeTab === "bar") && (
+          <div className={`${cardBgClass} p-6 rounded-lg shadow`}>
+            <h2 className={`text-lg font-semibold mb-4 ${headingClass}`}>Quarterly Revenue vs Expenses</h2>
+            <div className="h-80">
+              <Bar data={barData} options={chartOptions} />
+            </div>
           </div>
-          
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-700">Revenue</h3>
-            <p className="text-3xl font-bold mt-2">$56,789</p>
-            <p className="text-red-500 flex items-center mt-2">
-              <span>↓ 3%</span>
-              <span className="text-gray-500 text-sm ml-1">vs last month</span>
-            </p>
+        )}
+
+
+        {(activeTab === "all" || activeTab === "pie") && (
+          <div className={`${cardBgClass} p-6 rounded-lg shadow`}>
+            <h2 className={`text-lg font-semibold mb-4 ${headingClass}`}>Product Sales Distribution</h2>
+            <div className="h-80 flex justify-center">
+              <div className="w-full max-w-md">
+                <Pie data={pieData} options={chartOptions} />
+              </div>
+            </div>
           </div>
-          
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-700">Conversion Rate</h3>
-            <p className="text-3xl font-bold mt-2">5.67%</p>
-            <p className="text-green-500 flex items-center mt-2">
-              <span>↑ 2.3%</span>
-              <span className="text-gray-500 text-sm ml-1">vs last month</span>
-            </p>
-          </div>
-          
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-700">Avg. Session</h3>
-            <p className="text-3xl font-bold mt-2">4m 23s</p>
-            <p className="text-green-500 flex items-center mt-2">
-              <span>↑ 8%</span>
-              <span className="text-gray-500 text-sm ml-1">vs last month</span>
-            </p>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )

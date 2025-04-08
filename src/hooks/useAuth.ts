@@ -1,7 +1,7 @@
 "use client"
 
 import { useAppDispatch, useAppSelector } from "../store"
-import { signIn, signUp, signOut } from "../store/slices/authSlice"
+import { signIn, signUp, signOut, signInWithGoogle } from "../store/slices/authSlice"
 import type { User } from "../types/firebase"
 
 interface AuthHookResult {
@@ -10,6 +10,7 @@ interface AuthHookResult {
   error: string | null
   login: (email: string, password: string) => Promise<any>
   register: (email: string, password: string) => Promise<any>
+  loginWithGoogle: () => Promise<any>
   logout: () => Promise<any>
   isAuthenticated: boolean
 }
@@ -26,6 +27,10 @@ export const useAuth = (): AuthHookResult => {
     return dispatch(signUp({ email, password }))
   }
 
+  const loginWithGoogle = async () => {
+    return dispatch(signInWithGoogle())
+  }
+
   const logout = async () => {
     return dispatch(signOut())
   }
@@ -36,6 +41,7 @@ export const useAuth = (): AuthHookResult => {
     error,
     login,
     register,
+    loginWithGoogle,
     logout,
     isAuthenticated: !!user,
   }

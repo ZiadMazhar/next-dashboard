@@ -3,31 +3,31 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
+  signInWithPopup,
   type User,
 } from "firebase/auth"
-import { auth } from "../../lib/firebase"
+import { auth, googleProvider } from "../../lib/firebase"
 
-// Define the state interface
+
 interface AuthState {
   user: User | null
   loading: boolean
   error: string | null
 }
 
-// Define the payload types
 interface AuthCredentials {
   email: string
   password: string
 }
 
-// Initial state
+
 const initialState: AuthState = {
   user: null,
   loading: false,
   error: null,
 }
 
-// Async thunks for Firebase authentication
+
 export const signIn = createAsyncThunk<User, AuthCredentials, { rejectValue: string }>(
   "auth/signIn",
   async ({ email, password }, { rejectWithValue }) => {
@@ -35,6 +35,7 @@ export const signIn = createAsyncThunk<User, AuthCredentials, { rejectValue: str
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       return userCredential.user
     } catch (error: any) {
+      console.error("Sign in error:", error)
       return rejectWithValue(error.message || "Failed to sign in")
     }
   },
@@ -47,6 +48,7 @@ export const signUp = createAsyncThunk<User, AuthCredentials, { rejectValue: str
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       return userCredential.user
     } catch (error: any) {
+      console.error("Sign up error:", error)
       return rejectWithValue(error.message || "Failed to sign up")
     }
   },
@@ -59,12 +61,28 @@ export const signOut = createAsyncThunk<null, void, { rejectValue: string }>(
       await firebaseSignOut(auth)
       return null
     } catch (error: any) {
+      console.error("Sign out error:", error)
       return rejectWithValue(error.message || "Failed to sign out")
     }
   },
 )
 
-// Create the auth slice
+export const signInWithGoogle = createAsyncThunk<User, void, { rejectValue: string }>(
+  "auth/signInWithGoogle",
+  async (_, { rejectWithValue }) => {
+    try {
+      console.log("Attempting Google sign-in...")
+      const result = await signInWithPopup(auth, googleProvider)
+      console.log("Google sign-in successful:", result.user)
+      return result.user
+    } catch (error: any) {
+      console.error("Google sign-in error:", error)
+      return rejectWithValue(error.message || "Failed to sign in with Google")
+    }
+  },
+)
+
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -77,7 +95,7 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Sign In
+
     builder.addCase(signIn.pending, (state) => {
       state.loading = true
       state.error = null
@@ -91,7 +109,6 @@ const authSlice = createSlice({
       state.error = action.payload as string
     })
 
-    // Sign Up
     builder.addCase(signUp.pending, (state) => {
       state.loading = true
       state.error = null
@@ -105,7 +122,6 @@ const authSlice = createSlice({
       state.error = action.payload as string
     })
 
-    // Sign Out
     builder.addCase(signOut.pending, (state) => {
       state.loading = true
     })
@@ -114,6 +130,19 @@ const authSlice = createSlice({
       state.loading = false
     })
     builder.addCase(signOut.rejected, (state, action) => {
+      state.loading = false
+      state.error = action.payload as string
+    })
+
+    builder.addCase(signInWithGoogle.pending, (state) => {
+      state.loading = true
+      state.error = null
+    })
+    builder.addCase(signInWithGoogle.fulfilled, (state, action) => {
+      state.user = action.payload
+      state.loading = false
+    })
+    builder.addCase(signInWithGoogle.rejected, (state, action) => {
       state.loading = false
       state.error = action.payload as string
     })

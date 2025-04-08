@@ -1,20 +1,28 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 
-// Define the state interface
+
 interface UiState {
   isLoading: boolean
   darkMode: boolean
   notifications: string[]
 }
 
-// Initial state
+const getInitialDarkMode = (): boolean => {
+  if (typeof window !== "undefined") {
+    const savedMode = localStorage.getItem("darkMode")
+    return savedMode === "true"
+  }
+  return false
+}
+
+
 const initialState: UiState = {
   isLoading: false,
-  darkMode: false,
+  darkMode: getInitialDarkMode(),
   notifications: [],
 }
 
-// Create the UI slice
+
 const uiSlice = createSlice({
   name: "ui",
   initialState,
@@ -24,6 +32,9 @@ const uiSlice = createSlice({
     },
     toggleDarkMode: (state) => {
       state.darkMode = !state.darkMode
+      if (typeof window !== "undefined") {
+        localStorage.setItem("darkMode", state.darkMode.toString())
+      }
     },
     addNotification: (state, action: PayloadAction<string>) => {
       state.notifications.push(action.payload)

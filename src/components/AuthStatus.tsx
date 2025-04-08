@@ -10,7 +10,7 @@ export default function AuthStatus(): JSX.Element {
   const dispatch = useAppDispatch()
 
   const handleLogin = (): void => {
-    login("Ziad255599@gmail.com", "12909072")
+    login("test@example.com", "password123")
   }
 
   return (
